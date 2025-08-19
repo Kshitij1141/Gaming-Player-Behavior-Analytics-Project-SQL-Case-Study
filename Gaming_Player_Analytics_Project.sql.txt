@@ -1,0 +1,620 @@
+# Gaming Player Behavior Analytics Project: SQL Case Study
+
+## Project Overview
+
+This project simulates a common scenario in game analytics, focusing on understanding player behavior through SQL queries. It covers a wide range of SQL concepts, from basic data retrieval and filtering to complex aggregations, joins, subqueries, CTEs, window functions, and date arithmetic. The goal is to extract meaningful insights from player data, game sessions, achievements, and in-game purchases.
+
+## Database Schema (DDL - Data Definition Language)
+
+```sql
+-- Table: Players
+-- Stores information about individual players
+CREATE TABLE Players (
+player_id INT PRIMARY KEY, -- Unique identifier for each player
+username VARCHAR(255) UNIQUE NOT NULL, -- Player's chosen username
+registration_date DATE NOT NULL, -- Date when the player registered
+country VARCHAR(255), -- Player's country of residence
+last_login_date DATE -- Date of the player's last login
+);
+
+-- Table: GameSessions
+-- Records individual gaming sessions
+CREATE TABLE GameSessions (
+session_id INT PRIMARY KEY, -- Unique identifier for each session
+player_id INT NOT NULL, -- Foreign key referencing Players.player_id
+start_time TIMESTAMP NOT NULL, -- Start time of the game session
+end_time TIMESTAMP NOT NULL, -- End time of the game session
+duration_minutes INT, -- Duration of the session in minutes
+game_mode VARCHAR(255), -- E.g., 'PvP', 'PvE', 'Story', 'Co-op'
+FOREIGN KEY (player_id) REFERENCES Players(player_id)
+);
+
+-- Table: Achievements
+-- Defines the different types of achievements available in the game
+CREATE TABLE Achievements (
+achievement_id INT PRIMARY KEY, -- Unique identifier for each achievement
+achievement_name VARCHAR(255) UNIQUE NOT NULL, -- Name of the achievement
+description TEXT, -- Description of what the achievement entails
+points_awarded INT -- Points awarded for unlocking the achievement
+);
+
+-- Table: PlayerAchievements
+-- Records which achievements have been unlocked by which players
+CREATE TABLE PlayerAchievements (
+player_achievement_id INT PRIMARY KEY, -- Unique identifier for player-achievement link
+player_id INT NOT NULL, -- Foreign key referencing Players.player_id
+achievement_id INT NOT NULL, -- Foreign key referencing Achievements.achievement_id
+date_unlocked TIMESTAMP NOT NULL, -- Date and time the achievement was unlocked
+FOREIGN KEY (player_id) REFERENCES Players(player_id),
+FOREIGN KEY (achievement_id) REFERENCES Achievements(achievement_id)
+);
+
+-- Table: InGamePurchases
+-- Records all in-game transactions made by players
+CREATE TABLE InGamePurchases (
+purchase_id INT PRIMARY KEY, -- Unique identifier for each purchase
+player_id INT NOT NULL, -- Foreign key referencing Players.player_id
+item_name VARCHAR(255) NOT NULL, -- Name of the purchased item
+item_type VARCHAR(255), -- E.g., 'Cosmetic', 'Power-up', 'Currency'
+purchase_date TIMESTAMP NOT NULL, -- Date and time of the purchase
+price_usd DECIMAL(10, 2) NOT NULL, -- Price of the item in USD
+FOREIGN KEY (player_id) REFERENCES Players(player_id)
+);
+
+
+
+
+Queries and Solutions
+ 
+
+
+Query Set 1: Basic Data Retrieval and Filtering
+ 
+
+ 
+Query 1: All Players
+ 
+
+Task: Retrieve all columns for all players.
+
+Solution:
+
+SQL 
+SELECT *
+FROM Players;
+
+ 
+
+Query 2: Players from USA
+ 
+
+Task: Get the username and registration_date for all players from 'USA'.
+
+Solution:
+
+SQL 
+SELECT username, registration_date
+FROM Players
+WHERE country = 'USA';
+
+ 
+
+Query 3: Recent Logins
+ 
+
+Task: Find player_id and username for players who logged in after '2024-06-01'.
+
+Solution:
+
+SQL 
+SELECT player_id, username
+FROM Players
+WHERE last_login_date > '2024-06-01';
+
+ 
+
+Query 4: Expensive Purchases
+ 
+
+Task: List item_name and price_usd for all in-game purchases where the price was greater than 50.00.
+
+Solution:
+
+SQL 
+SELECT item_name, price_usd
+FROM InGamePurchases
+WHERE price_usd > 50.00;
+
+ 
+
+Query 5: Specific Game Mode Sessions
+ 
+
+Task: Get session_id and duration_minutes for sessions played in 'PvP' mode.
+
+Solution:
+
+SQL 
+SELECT session_id, duration_minutes
+FROM GameSessions
+WHERE game_mode = 'PvP';
+
+ 
+
+Query Set 2: Aggregation and Grouping
+ 
+
+ 
+
+Query 6: Total Players
+ 
+
+Task: Count the total number of players registered.
+
+Solution:
+
+SQL 
+SELECT COUNT(player_id) AS total_players
+FROM Players;
+
+ 
+
+Query 7: Average Session Duration
+ 
+
+Task: Calculate the average duration_minutes for all game sessions.
+
+Solution:
+
+SQL 
+SELECT AVG(duration_minutes) AS average_session_duration
+FROM GameSessions;
+
+ 
+
+Query 8: Total Revenue
+ 
+
+Task: Find the total revenue generated from all in-game purchases.
+
+Solution:
+
+SQL 
+SELECT SUM(price_usd) AS total_revenue
+FROM InGamePurchases;
+
+ 
+
+Query 9: Purchases by Item Type
+ 
+
+Task: Count the number of purchases for each item_type. Display item_type and purchase_count.
+
+Solution:
+
+SQL 
+SELECT item_type, COUNT(purchase_id) AS purchase_count
+FROM InGamePurchases
+GROUP BY item_type;
+
+ 
+
+Query 10: Top 5 Countries by Players
+ 
+
+Task: List the top 5 countries with the most registered players. Display country and player_count.
+
+Solution:
+
+SQL 
+SELECT country, COUNT(player_id) AS player_count
+FROM Players
+GROUP BY country
+ORDER BY player_count DESC
+LIMIT 5;
+
+ 
+
+Query 11: Achievements Unlocked Per Player
+ 
+
+Task: For each player, count how many achievements they have unlocked. Display player_id and achievements_unlocked.
+
+Solution:
+
+SQL 
+SELECT player_id, COUNT(player_achievement_id) AS achievements_unlocked
+FROM PlayerAchievements
+GROUP BY player_id;
+
+ 
+
+Query 12: Total Points Awarded Per Achievement
+ 
+
+Task: Calculate the total points awarded for each achievement_name. Display achievement_name and total_points.
+
+Solution:
+
+SQL 
+SELECT A.achievement_name, SUM(A.points_awarded) AS total_points
+FROM Achievements AS A
+GROUP BY A.achievement_name;
+
+ 
+
+Query 13: Average Price of Purchases by Type
+ 
+
+Task: Find the average price_usd for each item_type.
+
+Solution:
+
+SQL 
+SELECT item_type, AVG(price_usd) AS average_price
+FROM InGamePurchases
+GROUP BY item_type;
+
+ 
+
+Query 14: Sessions Per Game Mode
+ 
+
+Task: Count the number of sessions for each game_mode.
+
+Solution:
+
+SQL 
+SELECT game_mode, COUNT(session_id) AS sessions_count
+FROM GameSessions
+GROUP BY game_mode;
+
+ 
+
+Query 15: Players Registered Each Month
+ 
+
+Task: Count the number of new players registered in each month of their registration_date. Display registration_month (as a number) and new_player_count.
+
+Solution:
+
+SQL 
+SELECT MONTH(registration_date) AS registration_month, COUNT(player_id) AS new_player_count
+FROM Players
+GROUP BY registration_month
+ORDER BY registration_month;
+
+ 
+
+Query Set 3: Joins and Subqueries
+ 
+
+ 
+
+Query 16: Player Purchase History
+ 
+
+Task: List the username, item_name, and price_usd for all purchases.
+
+Solution:
+
+SQL 
+SELECT P.username, IGP.item_name, IGP.price_usd
+FROM Players AS P
+JOIN InGamePurchases AS IGP ON P.player_id = IGP.player_id;
+
+ 
+
+Query 17: Players with Specific Achievement
+ 
+
+Task: Find the username of all players who unlocked the achievement named 'First Victory'.
+
+Solution:
+
+SQL 
+SELECT P.username
+FROM Players AS P
+JOIN PlayerAchievements AS PA ON P.player_id = PA.player_id
+JOIN Achievements AS A ON PA.achievement_id = A.achievement_id
+WHERE A.achievement_name = 'First Victory';
+
+ 
+
+Query 18: Total Playtime Per Player
+ 
+
+Task: Calculate the total duration_minutes for all game sessions for each player. Display username and total_playtime_minutes.
+
+Solution:
+
+SQL 
+SELECT P.username, SUM(GS.duration_minutes) AS total_playtime_minutes
+FROM Players AS P
+JOIN GameSessions AS GS ON P.player_id = GS.player_id
+GROUP BY P.username;
+
+ 
+
+Query 19: Achievements and Their Unlockers
+ 
+
+Task: List each achievement_name and the username of the player who unlocked it, along with the date_unlocked.
+
+Solution:
+
+SQL 
+SELECT A.achievement_name, P.username, PA.date_unlocked
+FROM Achievements AS A
+JOIN PlayerAchievements AS PA ON A.achievement_id = PA.achievement_id
+JOIN Players AS P ON PA.player_id = P.player_id;
+
+ 
+
+Query 20: Top Spenders
+ 
+
+Task: Identify the top 3 players by total money spent on in-game purchases. Display username and total_spent.
+
+Solution:
+
+SQL 
+SELECT P.username, SUM(IGP.price_usd) AS total_spent
+FROM Players AS P
+JOIN InGamePurchases AS IGP ON P.player_id = IGP.player_id
+GROUP BY P.username
+ORDER BY total_spent DESC
+LIMIT 3;
+
+ 
+
+Query 21: Players with No Purchases
+ 
+
+Task: Find the username of players who have not made any in-game purchases.
+
+Solution:
+
+SQL 
+SELECT P.username
+FROM Players AS P
+LEFT JOIN InGamePurchases AS IGP ON P.player_id = IGP.player_id
+WHERE IGP.purchase_id IS NULL;
+
+ 
+
+Query 22: Average Session Duration by Country
+ 
+
+Task: Calculate the average session duration for players from each country. Display country and average_duration_minutes.
+
+Solution:
+
+SQL 
+SELECT P.country, AVG(GS.duration_minutes) AS average_duration_minutes
+FROM Players AS P
+JOIN GameSessions AS GS ON P.player_id = GS.player_id
+GROUP BY P.country;
+
+ 
+
+Query 23: Achievement Popularity
+ 
+
+Task: Rank achievements by how many players have unlocked them (most unlocked first). Display achievement_name and unlocked_count.
+
+Solution:
+
+SQL 
+SELECT A.achievement_name, COUNT(PA.player_id) AS unlocked_count
+FROM Achievements AS A
+JOIN PlayerAchievements AS PA ON A.achievement_id = PA.achievement_id
+GROUP BY A.achievement_name
+ORDER BY unlocked_count DESC;
+
+ 
+
+Query 24: Players Who Haven't Logged In Since Registration
+ 
+
+Task: Find players who have never logged in since their registration_date (i.e., last_login_date is the same as registration_date or NULL if only registration_date exists).
+
+Solution:
+
+SQL 
+SELECT username, registration_date, last_login_date
+FROM Players
+WHERE last_login_date IS NULL OR last_login_date = registration_date;
+
+ 
+
+Query 25: Most Active Game Mode
+ 
+
+Task: Determine which game_mode has the highest total duration_minutes. Display game_mode and total_duration_minutes.
+
+Solution:
+
+SQL 
+SELECT game_mode, SUM(duration_minutes) AS total_duration_minutes
+FROM GameSessions
+GROUP BY game_mode
+ORDER BY total_duration_minutes DESC
+LIMIT 1;
+
+ 
+
+Query 26: Players with All Achievements
+ 
+
+Task: Find the username of players who have unlocked every single achievement available in the game.
+
+Solution:
+
+SQL 
+SELECT P.username
+FROM Players AS P
+JOIN PlayerAchievements AS PA ON P.player_id = PA.player_id
+GROUP BY P.player_id, P.username
+HAVING COUNT(DISTINCT PA.achievement_id) = (SELECT COUNT(achievement_id) FROM Achievements);
+
+ 
+
+Query Set 4: Advanced SQL Concepts
+ 
+
+ 
+
+Query 27: Players with Above Average Session Duration
+ 
+
+Task: Find the username of players whose average session duration is greater than the overall average session duration across all players.
+
+Solution:
+
+SQL 
+SELECT P.username
+FROM Players AS P
+JOIN GameSessions AS GS ON P.player_id = GS.player_id
+GROUP BY P.username
+HAVING AVG(GS.duration_minutes) > (SELECT AVG(duration_minutes) FROM GameSessions);
+
+ 
+
+Query 28: Player Achievement Rank
+ 
+
+Task: For each player, count the total number of achievements they have unlocked. Display the username, total_achievements, and assign a dense_rank based on total_achievements (highest count gets rank 1). Include all players, even those with 0 achievements (if applicable).
+
+Solution:
+
+SQL 
+SELECT
+p.username,
+COUNT(pa.player_achievement_id) AS total_achievements,
+DENSE_RANK() OVER (ORDER BY COUNT(pa.player_achievement_id) DESC) AS dense_rank
+FROM
+Players AS p
+LEFT JOIN
+PlayerAchievements AS pa ON p.player_id = pa.player_id
+GROUP BY
+p.player_id,
+p.username
+ORDER BY
+dense_rank,
+p.username;
+
+ 
+
+Query 29: Daily Login Streaks
+ 
+
+Task: For each username, find their longest consecutive login streak (number of days). A login is considered successful if last_login_date exists for that day. Display username and longest_streak.
+
+Solution:
+
+SQL 
+WITH PlayerLoginDates AS (
+-- Get distinct login dates for each player and assign a row number
+SELECT
+player_id,
+username,
+last_login_date,
+ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY last_login_date) AS rn
+FROM
+Players
+WHERE
+last_login_date IS NOT NULL
+),
+StreakGroups AS (
+-- Identify groups of consecutive dates
+SELECT
+player_id,
+username,
+last_login_date,
+-- This calculation creates a constant value for consecutive dates
+-- If dates are 2024-01-01, 2024-01-02, 2024-01-03 and rn are 1, 2, 3
+-- (2024-01-01 - 1 day) = 2023-12-31
+-- (2024-01-02 - 2 days) = 2023-12-31
+-- (2024-01-03 - 3 days) = 2023-12-31
+-- The difference remains constant for a streak.
+DATE(last_login_date - INTERVAL rn DAY) AS streak_group_id
+FROM
+PlayerLoginDates
+),
+CalculatedStreaks AS (
+-- Count the length of each streak
+SELECT
+player_id,
+username,
+streak_group_id,
+COUNT(*) AS current_streak_length
+FROM
+StreakGroups
+GROUP BY
+player_id,
+username,
+streak_group_id
+)
+-- Find the longest streak for each player
+SELECT
+username,
+MAX(current_streak_length) AS longest_streak
+FROM
+CalculatedStreaks
+GROUP BY
+username
+ORDER BY
+longest_streak DESC;
+
+ 
+
+Query 30: Player Retention Rate
+ 
+
+Task: Calculate the 30-day retention rate for players who registered in January 2024. Retention rate is defined as the percentage of players who registered in a specific month and then logged in again within 30 days of their registration_date. Display registration_month (which will be 'January 2024') and retention_rate_30_days (as a percentage, e.g., 65.25).
+
+Solution:
+
+SQL 
+SELECT
+'January 2024' AS registration_month,
+CAST(retained_players_count AS DECIMAL(10, 2)) * 100.0 / total_cohort_players AS retention_rate_30_days
+FROM (
+WITH January2024Cohort AS (
+SELECT
+p.player_id,
+p.registration_date,
+p.last_login_date
+FROM
+Players AS p
+WHERE
+YEAR(p.registration_date) = 2024
+AND MONTH(p.registration_date) = 1
+)
+SELECT
+COUNT(DISTINCT J.player_id) AS total_cohort_players,
+COUNT(DISTINCT CASE
+WHEN J.last_login_date IS NOT NULL AND J.last_login_date <= J.registration_date + INTERVAL '30' DAY
+THEN J.player_id
+END) AS retained_players_count
+FROM
+January2024Cohort AS J
+) AS CohortSummary;
+
+ 
+
+Key Takeaways and Skills Demonstrated
+ 
+
+This project showcases your ability to:
+
+Retrieve and Filter Data: Using SELECT, FROM, WHERE clauses.
+Perform Aggregations: Utilizing COUNT, SUM, AVG, MIN, MAX with GROUP BY.
+Join Multiple Tables: Employing INNER JOIN and LEFT JOIN for comprehensive data retrieval.
+Apply Subqueries and CTEs: Structuring complex queries for better readability and modularity.
+Work with Date Functions: Extracting parts of dates (YEAR, MONTH) and performing date arithmetic (INTERVAL).
+Implement Conditional Logic: Using CASE WHEN for flexible data analysis.
+Utilize Window Functions: Applying DENSE_RANK() for ranking and understanding the logic behind ROW_NUMBER() for sequence analysis.
+Handle Data Types: Ensuring correct calculations (e.g., floating-point division for percentages).
+Problem-Solve Complex Scenarios: Breaking down intricate problems like login streaks and retention rates into manageable SQL steps.
