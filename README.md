@@ -1,4 +1,13 @@
 # Gaming-Player-Behavior-Analytics-Project-SQL-Case-Study
+
+![Tool](https://img.shields.io/badge/Tool-SQL%20%2F%20PostgreSQL-lightgreen?style=flat-square)
+![Skill](https://img.shields.io/badge/Skills-Joins%20%7C%20Aggregations-blue?style=flat-square)
+![Techniques](https://img.shields.io/badge/Techniques-Subqueries%20%7C%20Date%20Arithmetic-purple?style=flat-square)
+![Data](https://img.shields.io/badge/Data-Player%20%7C%20Sessions%20%7C%20Achievements-blue?style=flat-square)
+![Use Case](https://img.shields.io/badge/Use%20Case-Player%20Behavior%20Analytics-green?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Completed-brightgreen?style=flat-square)
+
+
 This project analyzes player behavior using a simulated gaming database. It demonstrates SQL skills like data retrieval, filtering, aggregation, joins, subqueries, CTEs, window functions, and date arithmetic to extract meaningful insights from player activity, sessions, achievements, and purchases.
 
 
